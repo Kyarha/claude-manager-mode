@@ -1,0 +1,13 @@
+{
+  "name": "claude-manager-mode",
+  "owner": {
+    "name": "Kyarha"
+  },
+  "plugins": [
+    {
+      "name": "manager-mode",
+      "source": "./",
+      "description": "Work like a busy, non-technical manager wants: hand work to a background agent, get short plain-language updates, learn how things work, and get guided through any error — with zero jargon."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "manager-mode",
+  "description": "Work like a busy, non-technical manager wants: hand work to a background agent, get short plain-language updates (what's happening, what's done, what's needed), learn how things work, and get guided through any error — with zero jargon.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Marie-Rose Ramboz"
+  },
+  "keywords": ["skill", "manager", "non-technical", "summaries", "background-agent"]
+}
