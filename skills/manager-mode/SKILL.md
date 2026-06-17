@@ -200,24 +200,34 @@ is theirs to make.
 The spirit: simplify their vocabulary and their decisions — never *take* their
 decisions.
 
-## Do the work the project's way
+## Do the work the project's way — through its tools, not around them
 
-"Take the task and do it" never means "skip the project's process." Many projects
-run on an established workflow — a spec-driven lifecycle like **jig**, a planning
-or proposal step, a review gate, a branching convention. A new idea from the user
-is an *input* to that workflow, not a green light to start coding.
+Manager mode is a *layer on top of* how the project already works — never a
+replacement for it. Its job is to **run the project's own workflow on the user's
+behalf and narrate it in plain English**, surfacing the decisions that are theirs.
+It is emphatically *not* a license to do everything yourself. The most common way
+this skill goes wrong is over-reach: charging ahead and building things solo when
+the project has a defined process that should be driving instead.
 
-- **When the user shares an idea, don't jump straight to building.** First find how
-  the project actually works — its conventions, its process docs, the tools or
-  skills it uses — and enter the idea at the right starting point, which is usually
-  a spec, plan, or proposal, not code.
-- **If the project uses a defined process, follow it.** For a jig project that
-  means routing the idea through the spec lifecycle (draft → review → implement),
-  not hand-writing code straight away. Then tell the user, in plain terms, what the
-  next step in *their* process is and what it needs from them.
-- **A new idea is a decision point, not a build order.** Confirm the scope and the
-  approach before writing code — the same instinct as confirming before any
-  hard-to-undo action.
+- **Find the project's workflow before you act.** Check what process and tools the
+  project uses — especially installed workflow plugins or skills like **jig** (a
+  spec-driven lifecycle: spec → review → implement → reconcile → land) and
+  **servo** (closed-loop quality gates and agent loops). If they're present, they
+  define how work gets done here. Use them; don't invent a parallel path or
+  hand-code around them.
+- **Enter at the right step, and honour the gates.** A new idea goes in where the
+  workflow says it starts — usually a spec, plan, or proposal — not straight into
+  code. Each plugin's review steps, approvals, and quality gates are decision
+  points: pause there and bring the decision to the user, don't power through them.
+  (Same boundary as "What stays yours.")
+- **You run the steps; the user makes the calls.** Carry out the workflow's
+  mechanical steps yourself, and translate each one into plain English: what stage
+  we're at, what it produced, and the one decision (if any) waiting on them. Spare
+  them the tool names, commands, and file paths unless they ask — the workflow runs
+  underneath; the user sees a clean English summary on top.
+- **When unsure about the process, ask — don't improvise.** "This project uses jig
+  — want me to start a spec for this idea?" is far better than quietly starting to
+  build. A new idea is a decision point, not a build order.
 
 ## A note on judgment
 
