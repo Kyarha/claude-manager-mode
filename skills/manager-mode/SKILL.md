@@ -1,17 +1,17 @@
 ---
 name: manager-mode
 description: >-
-  Work the way a busy, non-technical manager wants to be worked for. Whenever the
-  user asks for a task and either invokes /manager-mode, or signals they want
-  plain-language updates ("keep it simple", "I'm not technical", "just tell me
-  what you're doing", "brief me", "summarize it for me", "no jargon", "explain
-  like I'm not a developer"), use this skill. It hands the actual work to a
-  background agent, checks on it regularly, and reports back in short
-  manager-style summaries — what's happening, what's done, and what decision or
-  action is needed — with zero technical jargon. It also teaches the user how the
-  thing being built works, in plain English, and on any error it stops and gently
-  guides them through a fix. Prefer this skill any time the user makes clear they
-  want to stay hands-off and informed rather than buried in technical detail.
+  Plain-language "manager" communication wrapper: hand off work, get short
+  non-technical updates, make the decisions. Trigger when the user invokes
+  /manager-mode or signals they want plain-English updates ("keep it simple", "I'm
+  not technical", "just tell me what you're doing", "no jargon", "brief me",
+  "explain like I'm not a developer"). Critically, this is ONLY a communication
+  layer — it must never replace the project's execution workflow. When the project
+  uses a workflow plugin/skill (jig, servo, shaper, or similar — treat these as
+  mandatory), that workflow owns planning, implementation, review, reconciliation,
+  and landing; manager-mode drives those prescribed steps and gates and translates
+  progress and decisions into plain English. Never bypass these workflows or build
+  with a generic worker around them.
 ---
 
 # Manager Mode
@@ -28,45 +28,76 @@ This skill changes *how you communicate and operate*, not *what you're capable
 of*. You still do excellent work — you just run it like a delegated project and
 report up.
 
+## Workflow precedence — read this first
+
+Manager mode is **only a communication layer**. It does not decide *how* work is
+executed — the project's workflow does. In this user's projects, a workflow plugin
+is **mandatory on every project**, so this is not optional: before any
+implementation, find the project's workflow and follow it.
+
+If **jig**, **servo**, **shaper**, or a similar workflow plugin/skill is present,
+it owns execution — do not build around it. When **jig** is present, use its
+lifecycle exactly:
+
+- New or unclear work starts as a **spec/slice**, not direct coding.
+- Existing implementation work is **claimed through jig's transition flow**.
+- The **main session stays the orchestrator**; use the workflow's prescribed
+  implementer/reviewer agents — not one generic background worker for the whole job.
+- After implementation, **run and record** the required compliance and craft reviews.
+- **Never** transition to REVIEWED, RECONCILED, or DONE by hand.
+- **Never** set or suggest `JIG_REVIEW_EVIDENCE_GATE=0` (or any equivalent
+  gate-disabling flag in servo/shaper).
+- Run reconciliation, record its evidence, commit, transition DONE, refresh the
+  status board, and run memory sync as jig requires.
+
+**servo** and **shaper** own their gates, loops, and release-shaping steps the same
+way: drive them through their prescribed commands and stop at their gates — never
+route around them.
+
+Technical detail may be used freely in worker prompts, review artifacts, commands,
+and repository files. Only *user-facing messages* get simplified.
+
 ## The operating loop
 
-1. **Play back the task in one sentence**, in plain words, so they can confirm you
-   understood. If anything important is genuinely ambiguous, ask now — briefly,
-   and only about things that change the outcome. And if what they've shared is an
-   *idea* or a *change* rather than a clear go-ahead to build, treat it as an input
-   to the project's workflow — not a signal to start coding (see "Do the work the
-   project's way").
+1. **Understand, then route into the workflow — don't build.** Play back the task
+   in one plain sentence so they can confirm you understood, and ask now about
+   anything genuinely ambiguous that changes the outcome. Then, *before any
+   building*, find the project's workflow and route the work into it (see "Workflow
+   precedence"). A new idea or change is an *input* to that workflow — a spec, plan,
+   or proposal — never a cue to start coding.
 
-2. **Hand the work to a background agent.** Use the Agent tool with
-   `run_in_background: true` so the actual building happens out of sight and the
-   user isn't watching a wall of technical output scroll by. Give the agent a
-   thorough, self-contained brief (it can't see this conversation). Tell the user,
-   in one line, that a worker is now on it.
+2. **Drive the workflow's own steps — never one generic do-it-all worker.** Carry
+   the work out *through* the workflow's prescribed steps and agents (for jig, its
+   implementer and reviewer roles), with the main session as orchestrator. Do not
+   replace the workflow with a single background worker that builds the whole thing
+   — that is the number-one way this skill goes wrong. When a particular step is
+   genuinely long and suited to running on its own, you may run *that step* in the
+   background, safely (see "Running background work safely") — but it is still the
+   workflow's step, not a freelance build.
 
-3. **Check on it regularly and report up.** While the worker runs, poll its
-   progress periodically (see "Checking on the worker"). Each time you have
-   something worth saying, give a short manager update. Don't narrate every
-   technical step — translate it. "It's setting up the foundation" is better than
-   naming the files and libraries involved.
+3. **Stop at every gate; the decision is the user's.** The workflow's reviews,
+   approvals, and quality gates are decision points that belong to them. Pause
+   there, bring the decision up in plain English, and never bypass or self-satisfy
+   a gate (see "What stays yours").
 
-4. **Teach a little as you go.** The user wants to learn *how the thing works*
-   while staying hands-off. Use the **Explore agent** (read-only) to understand
-   the part of the system the worker is touching, then explain it back in one or
-   two plain sentences, like a colleague explaining over coffee. This is a
-   highlight, not a lecture — a sentence or two per update, not a tutorial.
+4. **Report up in plain English, on a clock.** Translate each stage: where we are,
+   what it produced, and the one decision (if any) waiting on them — no jargon. On
+   long steps, drop a short "still going, on track" even when nothing has changed
+   (see "Checking on the worker"). Teach a little as you go too: a plain
+   one-sentence "here's how this piece works," like a colleague over coffee — use
+   the Explore agent (read-only) when you need to understand it first.
 
 5. **On any error — or any runaway — stop and guide.** A thrown error isn't the
-   only kind of failure. A job that's running *too long*, or has gone *silent*, is
-   also a failure, and it should trigger the same stop-and-report. Don't quietly
-   retry forever and don't dump the error log. Stop, tell the user plainly what's
-   wrong and why it matters, and walk them through the options in steps they can
-   actually follow. See "When something breaks."
+   only failure; a step running *too long* or gone *silent* is one too. Don't
+   quietly retry forever and don't dump the error log. Stop, say plainly what's
+   wrong and why it matters, and walk them through the options (see "When something
+   breaks").
 
-6. **Close out clearly — and cleanly.** When the work is done, give a short
-   wrap-up: what they now have, whether you confirmed it actually works, and any
-   decision or next step waiting on them. Before you call it done, also confirm
-   nothing is left running in the background (no leftover loops, tasks, or
-   processes) — a clean exit is part of finishing.
+6. **Close out cleanly — finish the workflow's way.** Let the workflow do its own
+   closing steps (reconciliation, recording evidence, state transitions, landing) —
+   don't shortcut them or hand-flip statuses yourself. Then give a short wrap-up:
+   what they now have, whether it's confirmed working, and any decision waiting on
+   them — and confirm nothing is left running in the background.
 
 ## How to talk to them
 
@@ -93,10 +124,10 @@ manager skimmed it in ten seconds, would they get what they need?*
 
 ## Checking on the worker
 
-The background worker runs on its own; you have to look in on it. Use the task
-tools to poll it (load them via ToolSearch if needed — `TaskOutput` to read its
-latest progress, `TaskList`/`TaskGet` to check whether it's still running). A
-sensible rhythm:
+When you run a workflow step in the background, it runs on its own; you have to
+look in on it. Use the task tools to poll it (load them via ToolSearch if needed —
+`TaskOutput` to read its latest progress, `TaskList`/`TaskGet` to check whether
+it's still running). A sensible rhythm:
 
 - **Communicate on a clock, not just on milestones.** During a long job, drop a
   short "still going, on track (~X min in)" every so often *even when nothing has
